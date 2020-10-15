@@ -5,38 +5,39 @@ const notification = io.of('/notification');
 // Authenticate!
 io.origins('*:*');
 
-
+const joinRoom = (userId, socket) =>{
+  socket.join(userId);
+  console.log(socket.rooms)
+  socket.to(userId).emit('some event');
+}
 /**default namespace connection- can be used */
 const checkAuthToken = (token, socket) => {
     if(token){
+      //descryptToken and getUserID
     socket.auth = true;
+    joinRoom(userId=1, socket)
     return true
     }
     return false
 }
+
 io.on('connection', function(socket){
-  console.log('a user connected');
-  console.log(socket)
   socket.on('authenticate', function(data){
-    console.log('default')
-    checkAuthToken(data.token, socket)
+    checkAuthToken(data.token,socket)
   });
   socket.on('disconnect', function(data){
-    console.log('default')
     socket.auth = false;
   });
 });
 
 /**namespace level connection */
 notification.on('connection', socket => {
-  console.log('someone connected', socket.id, socket.sessionId);
+  console.log(notification)
   socket.on('authenticates', function(data){
-    console.log(data.token)
     checkAuthToken(data.token, socket)
   });
 
   socket.on('disconnect', function(data){
-    console.log('default')
     socket.auth = false;
   });
 });

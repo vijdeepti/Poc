@@ -27,9 +27,13 @@ class App extends Component {
     socket.on("tickled", () => this.setState({ message: "tickled" }));
   }
 
-  
+  componentDidMount() {
+    var state_current = this;
+    socket.emit('authenticates', {token: "myAuthToken"});
+    socket.on('some event', this.setState({ message: "joined room" }));
+  }
   onLogIn = () => {
-      socket.emit('authenticates', {token: "myAuthToken"});
+    
   };
 
   onSignUp = () => {
