@@ -12,79 +12,54 @@ import io from "socket.io-client";
 import Login from "./Login";
 
 //custom namespace connection
-const socket = io.connect("http://localhost:3001/notification");
+const socket = io.connect("http://localhost:3001");
 //default namespace connection
 //const socket = io.connect("http://localhost:3001");
+
 class App extends Component {
   constructor() {
     super();
-    this.state = {
-      username: "",
-      password: "",
-      message: ""
-    };
-    socket.on("poked", () => this.setState({ message: "poked" }));
-    socket.on("tickled", () => this.setState({ message: "tickled" }));
+    this.state={message:'deept'}
+    socket.on('authenticated', ()=> {
+        this.setState({message:'Authenticated'})
+      })
+      socket .on('unAuthorised', ()=> {
+        this.setState({message:'user not found'})
+      })
+      socket .on('disconnected',()=> {
+        this.setState({message:'disconnected'})
+      })
+      socket .on( 'message', ()=> {
+        // var data = JSON.parse(data);
+        this.setState({message: Math.random()})
+    });
   }
 
   componentDidMount() {
-    var state_current = this;
-    socket.emit('authenticates', {token: "myAuthToken"});
-    socket.on('some event', this.setState({ message: "joined room" }));
+    socket.on('connect', function () {
+      socket
+      .emit('authenticate', 'mytoken')
+     
+    });
   }
-  onLogIn = () => {
-    
-  };
-
-  onSignUp = () => {
-    socket.emit("hi", { ...this.state, register: true });
-  };
-
-  onChange = e => {
-    this.setState({ [e.target.name]: e.target.value });
-  };
-
-  onSocket = event => () => {
-    socket.emit(event);
-  };
-
-  actions = {
-    onLogIn: this.onLogIn,
-    onSignUp: this.onSignUp,
-    onChange: this.onChange
-  };
+ 
+  handleclick =()=>{
+    console.log('clicked')
+    socket
+    .emit('getmessage', 'mytoken')
+  }
+  handlereauth =()=>{
+    console.log('clicked')
+    socket
+    .emit('authenticate', 'mytoken')
+  }
 
   render() {
     return (
       <Container>
-        <Grid textAlign="center" verticalAlign="middle">
-          <Grid.Column width={6}>
-            <Login actions={this.actions} values={this.state} />
-          </Grid.Column>
-          <Grid.Column width={6}>
-            <Segment>
-              <Header>Send an Event:</Header>
-              <Button
-                onClick={this.onSocket("poke")}
-                color="green"
-                size="large"
-              >
-                Poke
-              </Button>
-              <Button
-                onClick={this.onSocket("tickle")}
-                color="red"
-                size="large"
-              >
-                Tickle
-              </Button>
-              <Message>
-                <Message.Header>Event Response</Message.Header>
-                <Message.Content>{this.state.message}</Message.Content>
-              </Message>
-            </Segment>
-          </Grid.Column>
-        </Grid>
+        <p>{this.state.message}</p>
+    <button onClick={this.handleclick} >{this.state.message}</button>
+    <button onClick={this.handlereauth} >{this.state.message}</button>
       </Container>
     );
   }
