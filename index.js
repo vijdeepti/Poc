@@ -12,7 +12,7 @@ const joinRoom = (userId=1, socket) =>{
 }
 /**default namespace connection- can be used */
 //_.each(io.nsps, forbidConnections);
-async function verifyUser (token) {
+async function verifyUser (userId) {
   return new Promise((resolve, reject) => {
     // setTimeout to mock a cache or database call
     setTimeout(() => {
@@ -20,13 +20,18 @@ async function verifyUser (token) {
       const users = [
         {
           id: 1,
-          name: 'mariotacke',
-          token: 'secret token',
+          name: '100',
+          token: 'token',
+        },
+        {
+          id: 2,
+          name: '101',
+          token: 'token2',
         },
       ];
 
-      const user ='user'
-
+      const user = users.find(user=>user.name === userId)
+      console.log(userId,user)
       if (!user) {
         return reject('USER_NOT_FOUND');
       }
@@ -40,12 +45,13 @@ io.on('connection', function(socket){
   socket.auth = false;
 
   socket.on('authenticate', function(data){
-    verifyUser(data.token,socket).then(()=>{
+    console.log('authenticate event')
+    verifyUser(data,socket).then(()=>{
       socket.auth = true;
      _.each(io.nsps, function(nsp) {
         restoreConnection(nsp, socket);
       });
-      joinRoom('room1',socket)
+      joinRoom(data,socket)
      socket.emit('authenticated','')
     }).catch(()=>{
       socket.emit('unAuthorised','')
@@ -55,9 +61,8 @@ io.on('connection', function(socket){
   socket.on('disconnect', function(data){
     socket.auth = false;
   });
-  socket.on('getmessage',function(){
-    console.log('[jjfjfj')
-  io.to('room1').emit('message');
+  socket.on('getmessage',function(userId){
+  io.to(userId).emit('message','message is for user '+userId+' '+Date.now());
   })
 });
 

@@ -19,47 +19,54 @@ const socket = io.connect("http://localhost:3001");
 class App extends Component {
   constructor() {
     super();
-    this.state={message:'deept'}
-    socket.on('authenticated', ()=> {
-        this.setState({message:'Authenticated'})
-      })
-      socket .on('unAuthorised', ()=> {
-        this.setState({message:'user not found'})
-      })
-      socket .on('disconnected',()=> {
-        this.setState({message:'disconnected'})
-      })
-      socket .on( 'message', ()=> {
-        // var data = JSON.parse(data);
-        this.setState({message: Math.random()})
+    this.state = { message: '', status: '' }
+    socket.on('authenticated', () => {
+      this.setState({ status: 'Authenticated' })
+    })
+    socket.on('unAuthorised', () => {
+      this.setState({ status: 'user not found' })
+    })
+    socket.on('disconnected', () => {
+      this.setState({ status: 'disconnected' })
+    })
+    socket.on('message', (data) => {
+      // var data = JSON.parse(data);
+      this.setState({ message: data })
     });
   }
 
   componentDidMount() {
-    socket.on('connect', function () {
-      socket
-      .emit('authenticate', 'mytoken')
-     
-    });
+    // socket.on('connect', function () {
+    //   socket
+    //     .emit('authenticate', 'mytoken')
+
+    // });
   }
- 
-  handleclick =()=>{
+
+  handleclick = () => {
     console.log('clicked')
     socket
-    .emit('getmessage', 'mytoken')
+      .emit('getmessage', this.state.userId)
   }
-  handlereauth =()=>{
+  handlereauth = () => {
     console.log('clicked')
     socket
-    .emit('authenticate', 'mytoken')
+      .emit('authenticate', this.state.userId)
   }
 
   render() {
     return (
       <Container>
-        <p>{this.state.message}</p>
-    <button onClick={this.handleclick} >{this.state.message}</button>
-    <button onClick={this.handlereauth} >{this.state.message}</button>
+        <p>userid :{this.state.userId}</p>
+        <p>message :{this.state.message}</p>
+        <p>Status :{this.state.status}</p>
+        <input type="text" placeholder="Enter login id" value={this.state.userId} onChange={(ev) => this.setState({ userId: ev.target.value })}></input>
+        <div>
+        {this.state.status === 'Authenticated' && <button onClick={this.handleclick} disabled={!this.state.userId} >Get Data</button>}
+        </div>
+        <div>
+        <button onClick={() => this.handlereauth()} disabled={!this.state.userId} >Login </button>
+        </div>
       </Container>
     );
   }
