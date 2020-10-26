@@ -1,10 +1,26 @@
-// Prepare the Server
-const server = require("http").createServer();
+const http = require("http");
+const Koa = require('koa');
+const cors = require('@koa/cors');
+const IO = require("socket.io")
 const socketio = require('./socketService')
 
-socketio.init(server)
-// Start it up!
+const app = new Koa();
+app.use(cors({credentials:{'Access-Control-Allow-Credentials':true}}));
+
+app.server = http.createServer(app.callback())
+app.listen = (...args) => {
+  app.server.listen.call(app.server, ...args);
+  return app.server;
+};
+app.io = IO(app.server)
+
+socketio.init(app)
+
 const port = 3001;
 const host = "localhost";
 const logger = () => console.log(`Listening: http://${host}:${port}`);
-server.listen(port, host, logger);
+app.listen(port,host,logger)
+
+app.use((ctx,next)=>{
+  console.log(ctx.app.io)
+})

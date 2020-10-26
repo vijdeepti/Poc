@@ -1,48 +1,43 @@
-const _ = require('lodash');
-const redis = require("redis");
-const IO = require("socket.io")
 
-
-function init(server) {
-  const io = IO(server)
-  io.origins('*:*');
-  io.on('connection', function (socket) {
+function init(app) {
+  app.io.origins('*:*');
+  app.io.on('connection', function (socket) {
     socket.on('authenticate', function (data) {
-      console.log('authenticate event')
       verifyUser(data, socket).then(() => {
-        _.each(io.nsps, function (nsp) {
-          restoreConnection(nsp, socket);
-        });
         joinRoom(data, socket)
-        socket.emit('authenticated', '')
+        socket.emit('authenticated')
       }).catch(() => {
-        socket.emit('unAuthorised', '')
+        socket.emit('unAuthorised')
         // socket.disconnect();
       })
     });
     socket.on('disconnect', function () {
     });
 
-    socket.on('getmessage', function (userId) {
-      // io.to(userId).emit('message', );
-      sendEvent(userId,'message','message is for user ' + userId + ' ' + Date.now())
-    })
     // all event listeners will come here
 
+    socket.on('getmessage', function (userId) {
+      sendEvent(app,userId,'message','message is for user ' + userId + ' ' + Date.now())
+    })
+    socket.on('event1', function (userId) {
+
+    })
+    socket.on('event2', function (userId) {
+
+    })
   });
 
 }
 
-function sendEvent(userId, eventName, data) {
-  io.to(userId).emit(eventName, data);
+function sendEvent(app,userId, eventName, data) {
+  app.io.to(userId).emit(eventName, data);
 }
 
 
-const joinRoom = (userId = 1, socket) => {
+const joinRoom = (userId, socket) => {
   socket.join(userId);
 }
 /**default namespace connection- can be used */
-//_.each(io.nsps, forbidConnections);
 async function verifyUser(userId) {
   return new Promise((resolve, reject) => {
     // setTimeout to mock a cache or database call
@@ -72,18 +67,6 @@ async function verifyUser(userId) {
   });
 }
 
-
-/**
- * If the socket attempted a connection before authentication, restore it.
- */
-function restoreConnection(nsp, socket) {
-  if (_.find(nsp.sockets, { id: socket.id })) {
-    nsp.connected[socket.id] = socket;
-  }
-}
-
 module.exports = {
   init,
-  sendEvent,
-  
 }
